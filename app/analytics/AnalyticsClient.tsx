@@ -361,6 +361,12 @@ export function AnalyticsClient({ data }: { data: AnalyticsData }) {
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-semibold text-gray-700">Analytics</span>
+          <Link
+            href="/tutor"
+            className="ml-auto text-xs font-medium text-[#7F77DD] hover:text-[#3C3489] transition-colors"
+          >
+            Tutor
+          </Link>
         </div>
       </nav>
 

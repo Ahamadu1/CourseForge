@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import LandingPage from "./LandingPage";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -13,8 +14,14 @@ export default async function HomePage() {
       .select("id")
       .eq("creator_id", user.id)
       .limit(1);
-    redirect(courses && courses.length > 0 ? "/dashboard" : "/onboarding");
+
+    // Users with courses go straight to dashboard; new users see landing with logged-in CTAs
+    if (courses && courses.length > 0) {
+      redirect("/dashboard");
+    }
+
+    return <LandingPage isLoggedIn={true} />;
   }
 
-  redirect("/login");
+  return <LandingPage isLoggedIn={false} />;
 }

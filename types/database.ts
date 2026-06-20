@@ -418,6 +418,55 @@ export interface Database {
         };
         Relationships: [];
       };
+
+      tutor_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          course_id: string | null;
+          title: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          course_id?: string | null;
+          title?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          course_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      tutor_messages: {
+        Row: {
+          id: string;
+          session_id: string;
+          role: "user" | "assistant";
+          content: string;
+          tokens_used: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          role: "user" | "assistant";
+          content: string;
+          tokens_used?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          content?: string;
+          tokens_used?: number | null;
+        };
+        Relationships: [];
+      };
     };
 
     Views: {

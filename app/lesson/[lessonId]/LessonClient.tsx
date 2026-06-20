@@ -345,6 +345,8 @@ export function LessonClient({
   // Quiz CTA always visible in slides mode; scroll-gated in reading mode
   const showQuizCta = !!content && (viewMode === "slides" || quizVisible);
 
+  const tutorHref = `/tutor?lessonId=${lessonId}&lessonTitle=${encodeURIComponent(lessonTitle)}&courseId=${courseId}`;
+
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* ── Nav bar ── */}
@@ -545,6 +547,22 @@ export function LessonClient({
 
         {blocks.length > 0 && viewMode === "reading" && (
           <LessonBody blocks={blocks} activeBlock={speech.currentIndex} />
+        )}
+
+        {/* ── Ask Tutor floating button ── */}
+        {content && (
+          <a
+            href={tutorHref}
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-[#3C3489] hover:bg-[#7F77DD] text-white text-xs font-semibold rounded-full shadow-lg transition-colors"
+            style={{ boxShadow: "0 4px 14px rgba(63,52,137,0.35)" }}
+          >
+            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L13 4V8C13 11 10.5 13.5 8 15C5.5 13.5 3 11 3 8V4L8 1Z" fill="white" />
+              </svg>
+            </div>
+            Ask the Tutor
+          </a>
         )}
 
         {/* ── Quiz CTA ── */}

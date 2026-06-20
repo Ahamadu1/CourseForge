@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatDuration, slugify } from "@/lib/utils";
+import { EmbeddedTutorTab } from "@/app/tutor/EmbeddedTutorTab";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -168,9 +169,15 @@ function isSameDay(a: Date, b: Date): boolean {
 function CourseTab({
   modules,
   completedIds,
+  onExportPdf,
+  exporting,
+  exportError,
 }: {
   modules: ModuleData[];
   completedIds: Set<string>;
+  onExportPdf: () => void;
+  exporting: boolean;
+  exportError: boolean;
 }) {
   const sorted = [...modules].sort((a, b) => a.position - b.position);
 
@@ -327,6 +334,69 @@ function CourseTab({
           <div key={mod.id}>{card}</div>
         );
       })}
+
+      {/* ── Export section ── */}
+      <div className="mt-6 pt-5 border-t border-gray-100">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Export Course
+        </p>
+        <div className="bg-white rounded-xl p-4" style={{ border: "0.5px solid #E5E7EB" }}>
+          <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+            Save your complete course as a formatted PDF — lessons, quizzes, action plan, and answer key.
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onExportPdf}
+              disabled={exporting}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-all w-fit ${
+                exportError
+                  ? "border-red-200 text-red-500 bg-red-50"
+                  : exporting
+                  ? "border-[#7F77DD]/30 text-[#7F77DD]/60 cursor-not-allowed"
+                  : "border-[#7F77DD] text-[#7F77DD] hover:bg-[#EEEDFE]"
+              }`}
+            >
+              {exporting ? (
+                <>
+                  <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                  Generating PDF…
+                </>
+              ) : exportError ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  Export failed — try again
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export full course as PDF
+                </>
+              )}
+            </button>
+            <button
+              disabled
+              className="flex items-center justify-between gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-400 cursor-not-allowed w-fit"
+            >
+              <span className="flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Export current module
+              </span>
+              <span className="text-[10px] text-gray-400 ml-3">Coming soon</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -819,13 +889,14 @@ function ProgressTab({
 
 // ─── Main Dashboard Client ────────────────────────────────────────────────────
 
-type Tab = "course" | "goals" | "schedule" | "progress";
+type Tab = "course" | "goals" | "schedule" | "progress" | "tutor";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "course",   label: "Course"   },
   { id: "goals",    label: "Goals"    },
   { id: "schedule", label: "Schedule" },
   { id: "progress", label: "Progress" },
+  { id: "tutor",    label: "Tutor"    },
 ];
 
 export function DashboardClient({
@@ -841,6 +912,7 @@ export function DashboardClient({
   const [signingOut, setSigningOut] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
+  const [tutorMounted, setTutorMounted] = useState(false);
 
   const completedIds = new Set(completedLessonIds);
   const allLessons = modules.flatMap((m) => m.lessons);
@@ -902,58 +974,6 @@ export function DashboardClient({
             >
               Analytics
             </a>
-
-            {/* Export PDF button */}
-            <div className="relative">
-              <button
-                onClick={handleExportPdf}
-                disabled={exporting}
-                title={totalLessons >= 40 ? "Large course — may take 1–2 min" : "Download course as PDF"}
-                className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
-                  exportError
-                    ? "bg-red-50 text-red-500 border border-red-200"
-                    : exporting
-                    ? "bg-[#EEEDFE] text-[#7F77DD] cursor-not-allowed"
-                    : "bg-[#EEEDFE] text-[#7F77DD] hover:bg-[#7F77DD] hover:text-white"
-                }`}
-              >
-                {exporting ? (
-                  <>
-                    <svg
-                      className="animate-spin"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                    Generating…
-                  </>
-                ) : exportError ? (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    Export failed
-                  </>
-                ) : (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    Export PDF
-                  </>
-                )}
-              </button>
-            </div>
-
             <button
               onClick={handleSignOut}
               disabled={signingOut}
@@ -1027,7 +1047,10 @@ export function DashboardClient({
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                setTab(t.id);
+                if (t.id === "tutor") setTutorMounted(true);
+              }}
               className={`flex-1 py-3.5 text-xs font-semibold transition-colors border-b-2 ${
                 tab === t.id
                   ? "border-[#7F77DD] text-[#7F77DD]"
@@ -1041,20 +1064,50 @@ export function DashboardClient({
       </div>
 
       {/* ── Tab content ── */}
-      <div className="max-w-3xl mx-auto px-4 py-6 pb-16">
-        {tab === "course" && (
-          <CourseTab modules={modules} completedIds={completedIds} />
-        )}
-        {tab === "goals" && (
-          <GoalsTab goal={goal} tasks={tasks} />
-        )}
-        {tab === "schedule" && (
-          <ScheduleTab tasks={tasks} modules={modules} completedIds={completedIds} />
-        )}
-        {tab === "progress" && (
-          <ProgressTab modules={modules} completedIds={completedIds} adaptiveData={adaptiveData} />
-        )}
-      </div>
+      {tab !== "tutor" && (
+        <div className="max-w-3xl mx-auto px-4 py-6 pb-16">
+          {tab === "course" && (
+            <CourseTab
+              modules={modules}
+              completedIds={completedIds}
+              onExportPdf={handleExportPdf}
+              exporting={exporting}
+              exportError={exportError}
+            />
+          )}
+          {tab === "goals" && (
+            <GoalsTab goal={goal} tasks={tasks} />
+          )}
+          {tab === "schedule" && (
+            <ScheduleTab tasks={tasks} modules={modules} completedIds={completedIds} />
+          )}
+          {tab === "progress" && (
+            <ProgressTab modules={modules} completedIds={completedIds} adaptiveData={adaptiveData} />
+          )}
+        </div>
+      )}
+
+      {/* ── Tutor tab — mounted once, kept alive via CSS ── */}
+      {tutorMounted && (
+        <div className={tab !== "tutor" ? "hidden" : "max-w-3xl mx-auto px-4 py-4 pb-8"}>
+          <EmbeddedTutorTab
+            courseId={course.id}
+            suggestedQuestions={
+              adaptiveData?.weakTopics[0]
+                ? [
+                    `Explain "${adaptiveData.weakTopics[0].topic}" in a different way — I'm struggling`,
+                    "What should I focus on next given my progress?",
+                    "Quiz me on the most important concept I've covered",
+                  ]
+                : [
+                    "What should I focus on next given my progress?",
+                    "Break down the key concepts in my current module",
+                    "Give me a quick quiz on what I've learned so far",
+                  ]
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }

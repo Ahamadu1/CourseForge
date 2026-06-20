@@ -50,4 +50,5 @@ supabase/         # Migrations (001–005) and full schema (schema.sql)
 ### In Progress
 | Phase | Feature |
 |-------|---------|
-| 4E | PDF export |
+| 4E | PDF export — complete |
+| 4F | Context-aware AI tutor chat — complete |
