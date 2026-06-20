@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardClient } from "./DashboardClient";
-import type { CourseData, ModuleData, GoalData, TaskData, AdaptiveData } from "./DashboardClient";
+import type { CourseData, ModuleData, GoalData, TaskData } from "./DashboardClient";
 import { buildLearningProfile } from "@/lib/adaptive/analyze";
 import { getRecommendation } from "@/lib/adaptive/recommend";
 

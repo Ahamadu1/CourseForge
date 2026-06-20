@@ -205,7 +205,6 @@ async function getInsight(stats: {
   lessonsLastWeek: number;
   weakTopics: string[];
 }): Promise<string> {
-  const today = new Date().toISOString().slice(0, 10);
   // Cache key is intentionally incomplete — userId must be prepended by caller
   const prompt = `You are a supportive learning coach. Write exactly 1–2 sentences of personalized, specific insight. Be warm and direct. No generic platitudes.
 

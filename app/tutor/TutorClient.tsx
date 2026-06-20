@@ -198,7 +198,6 @@ export function TutorClient({
   suggestedQuestions,
 }: Props) {
   const searchParams = useSearchParams();
-  const lessonContext = searchParams.get("lesson");
   const lessonTitle = searchParams.get("lessonTitle");
 
   const [sessions, setSessions] = useState<TutorSession[]>(initialSessions);

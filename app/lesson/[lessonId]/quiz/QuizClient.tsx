@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,9 +84,7 @@ export function QuizClient({
   questions,
   passingScore,
   nextLessonId,
-  nextLessonTitle,
 }: Props) {
-  const router = useRouter();
 
   const [phase, setPhase] = useState<Phase>("quiz");
   const [questionIdx, setQuestionIdx] = useState(0);
