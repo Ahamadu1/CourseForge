@@ -319,7 +319,7 @@ export default function LandingPage({ isLoggedIn }: Props) {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-14 reveal">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Simple, honest pricing</h2>
-              <p className="text-gray-500 text-lg">Start free. Upgrade when you&apos;re ready.</p>
+              <p className="text-gray-500 text-lg">Start free. Upgrade when you are ready.</p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-8 max-w-2xl mx-auto">
